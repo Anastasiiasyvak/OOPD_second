@@ -1,0 +1,3 @@
+/home/nastia/CLionProjects/OOPD_second/cmake-build-debug/CMakeFiles/OOPD_second.dir
+/home/nastia/CLionProjects/OOPD_second/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/nastia/CLionProjects/OOPD_second/cmake-build-debug/CMakeFiles/rebuild_cache.dir
