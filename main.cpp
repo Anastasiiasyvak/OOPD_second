@@ -1,28 +1,57 @@
 #include <iostream>
+#include <string>
 
 using namespace std;
 
 
-class Product{
+
+class Product {
 private:
-    int ProductID;
+    int productID;
     string name;
     float price;
     int quantityInStock;
+
 public:
-    Product(int ProductID,string name, float price, int quantityInStock){};
+    Product(const int productID, string& name, float price, int quantityInStock)
+            : productID(productID), name(name), price(price), quantityInStock(quantityInStock) {}
 
-    float TotalCost(){
-        // method for calculating total cost
-    };
+    virtual void displayDetails() const = 0;
 
-    int GetProductID();
-    string GetName();
-    float GetPrice();
-    int GetQuantityInStock();
-    void setName(string name);
-    void setPrice(float price);
-    void setQuantityInStock(int quantityInStock);
+
+    int getID() const {
+        return productID;
+    }
+
+    string getName() const {
+        return name;
+    }
+
+    int getQuantityInStock() const {
+        return quantityInStock;
+    }
+
+    float getPrice() const {
+        return price;
+    }
+
+    void setName(const string& newName) {
+       name = newName;
+    }
+
+    void setPrice(float newPrice) {
+        price = newPrice;
+    }
+
+    void setQuantityInStock(int quantity) {
+        quantityInStock = quantity;
+    }
+
+    float totalCost() const {
+        return price * quantityInStock;
+    }
+
+    ~Product() = default;
 };
 
 
@@ -32,9 +61,26 @@ private:
     string model;
     float powerConsumption;
 public:
-    Electronics(int ProductID,string name, float price, int quantityInStock, string brand, string model, float powerConsumption)
-    : Product(ProductID, name, price, quantityInStock), brand(move(brand)), model(move(model)), powerConsumption(move(powerConsumption)){}
+    Electronics(const int ProductID,string& name, float price, int quantityInStock, string& brand, string& model, float powerConsumption)
+            : Product(ProductID, name, price, quantityInStock), brand(brand), model(model), powerConsumption(powerConsumption){}
 
+    void displayDetails() const override {
+        cout << "Product ID: " << getID() << ", Name: " << getName() << ", Price: " << getPrice()
+             << "$, Quantity: " << getQuantityInStock() << ", Brand: " << brand << ", Model: " << model
+             << ", Power: " << powerConsumption << " Watts" << endl;
+    }
+
+    string GetBrand() const {
+        return brand;
+    }
+
+    string GetModel() const {
+        return model;
+    }
+
+    float GetPowerConsumption() const {
+        return powerConsumption;
+    }
 };
 
 class Books : public Product{
@@ -43,8 +89,28 @@ private:
     string genre;
     string ISBN;
 public:
-    Books(int ProductID,string name, float price, int quantityInStock, string author, string genre, string ISBN)
-    : Product(ProductID, name, price, quantityInStock), author(move(author)), genre(move(genre)), ISBN(move(ISBN)){}
+    Books(const int ProductID,string& name, float price, int quantityInStock, string& author, string& genre, string& ISBN)
+            : Product(ProductID, name, price, quantityInStock), author(author), genre(genre), ISBN(ISBN){}
+
+    void displayDetails() const override {
+        cout << "Product ID: " << getID() << ", Name: " << getName() << ", Price: " << getPrice()
+             << "$, Quantity: " << getQuantityInStock() << ", Author: " << author << ", Genre: "
+             << genre<< ", ISBN: " << ISBN << endl;
+    }
+
+    string GetAuthor() const {
+        return author;
+    }
+
+    string GetGenre() const {
+        return genre;
+    }
+
+    string GetISBN() const {
+        return ISBN;
+    }
+
+
 
 };
 
@@ -54,11 +120,31 @@ private:
     string color;
     string material;
 public:
-    Clothing(int ProductID,string name, float price, int quantityInStock, string size, string color, string material)
-    : Product(ProductID, name, price, quantityInStock), size(move(size)), color(move(color)), material(move(material)){}
+    Clothing(const int ProductID,string& name, float price, int quantityInStock, string& size, string& color, string& material)
+            : Product(ProductID, name, price, quantityInStock), size(size), color(color), material(material){}
 
 
+    void displayDetails() const override {
+        cout << "Product ID: " << getID() << ", Name: " << getName() << ", Price: " << getPrice()
+             << "$, Quantity: " << getQuantityInStock() << ", Size: " << size << ", Color: "
+             << color << ", Material: " << material << endl;
+    }
+
+    string GetSize() const {
+        return size;
+    }
+
+    string GetColor() const {
+        return color;
+    }
+
+    string GetMaterial() const {
+        return material;
+    }
 };
+
+
+
 
 
 class OrderClass{
