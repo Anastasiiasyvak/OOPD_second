@@ -50,9 +50,6 @@ public:
         quantityInStock = quantity;
     }
 
-    float TotalCost() const {
-        return price * quantityInStock;
-    }
 
 };
 
@@ -181,7 +178,6 @@ private:
     vector<unique_ptr<Product>> products;
 
 public:
-    ProductCatalogClass() = default;
 
     void AddNewProductToCatalog(unique_ptr<Product>& product){
         products.push_back(move(product));
@@ -191,28 +187,6 @@ public:
         return products;
     }
 
-    void UpdateExistingProductDetails(const int id, string& name, float price, int quantity){
-        for (auto& product : products) {
-            if (product->GetID() == id) {
-                product->SetName(name);
-                product->SetPrice(price);
-                product->SetQuantityInStock(quantity);
-                break;
-            }
-        }
-    };
-    void RemoveProductFromCatalog();
-
-    void changeQuantityProduct(Product& removeProduct) {
-        for (auto iterator = products.begin(); iterator != products.end(); ++iterator) {
-            if ((*iterator)->GetID() == removeProduct.GetID()) {
-                cout << removeProduct.GetQuantityInStock() << endl;
-                int q  = removeProduct.GetQuantityInStock() - 1;
-                (*iterator)->SetQuantityInStock(q);
-                break;
-            }
-        }
-    }
 
     void ViewAllProductListInCatalog(){
         for (const auto& product : products) {
@@ -231,19 +205,19 @@ public:
             if (category == "Electronics") {
                 const auto* electronics = dynamic_cast<const Electronics*>(product.get());
                 if (electronics && (attribute.empty() || electronics->GetName() == attribute ||
-                                    electronics->GetModel() == attribute || electronics->GetBrand() == attribute)) {
+                                    electronics->GetModel() == attribute || electronics->GetBrand() == attribute || to_string(electronics->GetPowerConsumption()) == attribute)) {
                     electronics->displayDetails();
                 }
             } else if (category == "Books" ) {
-                const auto *book = dynamic_cast<const Books *>(product.get());
+                const auto *book = dynamic_cast<const Books*>(product.get());
                 if (book && (attribute.empty() || book->GetName() == attribute || book->GetAuthor() == attribute
-                             || book->GetGenre() == attribute)) {
+                             || book->GetGenre() == attribute || book->GetISBN() == attribute)) {
                     book->displayDetails();
                 }
             } else if (category == "Clothing") {
                 const auto* clothing = dynamic_cast<const Clothing*>(product.get());
                 if (clothing &&( attribute.empty() || clothing->GetName() == attribute || clothing->GetColor() == attribute
-                                 || clothing->GetSize() == attribute)) {
+                                 || clothing->GetSize() == attribute || clothing->GetMaterial() == attribute)) {
                     clothing->displayDetails();
                 }
             }}
@@ -253,19 +227,19 @@ public:
 
 
 
-class InventoryClass{
+class InventoryClass{ //відстеження  кількості товарів на складі та надання можливості сповіщення про низький запас товарів
 private:
     vector<Product*> products;
-    int lowStockThreshold;
+    int lowStockThreshold; // низький поріг запасів
 public:
     InventoryClass(const int& threshold) : lowStockThreshold(threshold){}
     void manageStockLevels(Product& product) {
         bool found = false;
-        for (const auto& product1 : products) {
-            if (product1->GetID() == product.GetID()) {
-                cout << product1->GetQuantityInStock() << endl;
-                int q = product1->GetQuantityInStock() - 1;
-                product1->SetQuantityInStock(q);
+        for (const auto& productt : products) {
+            if (productt->GetID() == product.GetID()) {
+                cout << productt->GetQuantityInStock() << endl;
+                int updatedQuantity = productt->GetQuantityInStock() - 1;
+                productt->SetQuantityInStock(updatedQuantity);
                 found = true;
                 break;
             }
@@ -288,6 +262,7 @@ public:
             cout << "No restocking required" << endl;
         }
     };
+
     vector<Product*> needRestocking() {
         vector<Product*> lowStockProducts;
         for (const auto& product : products) {
@@ -309,46 +284,48 @@ private:
 public:
     Customer(const string& name) : name(name) {}
 
-    void addToCart(Product& product) {
-        this->shoppingCart.push_back(&product);
+    string getName() const{
+        return name;
     }
 
-    string getName() const{
-        return this->name;
+    void addToCart(Product& product) {
+        shoppingCart.push_back(&product);
     }
+
 
     void checkout(const int& id) {
-        if (this->shoppingCart.empty()) {
+        if (shoppingCart.empty()) {
             cout << "Shopping cart is empty!" << endl;
             return;
         }
 
         OrderClass newOrder(id, name);
-        for (auto& product : this->shoppingCart) {
+
+        for (auto& product : shoppingCart) {
             newOrder.AddProducts(*product);
         }
 
         newOrder.ChangeOrderStatus("in process");
-        this->orders.push_back(move(newOrder));
-        this->shoppingCart.clear();
+        orders.push_back(newOrder);
+        shoppingCart.clear();
         cout << "The order received!" << endl;
         cout << "Confirmation order ID: " << id << endl;
     }
 
     void viewOrderHistory() const {
-        if (this->orders.empty()) {
+        if (orders.empty()) {
             cout << "No order history available." << endl;
             return;
         }
 
-        cout << "Order history for " << this->name << ":\n";
-        for (const auto& order : this->orders) {
+        cout << "Order history for " << name << ":\n";
+        for (const auto& order : orders) {
             cout << "Order ID: " << order.GetID() << " Total Cost: " << order.CalculateTotalCost() << endl;
         }
     }
 
     vector<Product*>& getShoppingCart() {
-        return this->shoppingCart;
+        return shoppingCart;
     }
 
 };
@@ -358,7 +335,6 @@ public:
 
 class ConfigReader {
 public:
-    ConfigReader()= default;
 
     ProductCatalogClass readConfiguration(const string& filePath) {
         ifstream file(filePath);
@@ -429,12 +405,12 @@ public:
     }
 };
 
-class Shopping {
+class ShoppingSystem {
 private:
     ProductCatalogClass catalog;
     InventoryClass inventory;
     vector<unique_ptr<Customer>> customers;
-    int orderId = 1;
+    int orderId = 111;
 
     void loadCatalog(const string& filePath) {
         ConfigReader reader;
@@ -442,7 +418,7 @@ private:
     }
 
 public:
-    Shopping(string& catalogFilePath, int lowStockThreshold) : inventory(move(lowStockThreshold)) {
+    ShoppingSystem(string& catalogFilePath, int lowStockThreshold) : inventory(move(lowStockThreshold)) {
         loadCatalog(catalogFilePath);
         for (auto& product : catalog.GetProducts()) {
             inventory.manageStockLevels(*product);
@@ -537,9 +513,8 @@ public:
             cout << "Incorrect customer name." << endl;
         }
 
-        cout << "\n------ Notification ------" << endl;
+        cout << "\nNotification" << endl;
         inventory.NotifyProductLowInStock();
-        cout << "-----------------------------------" << endl;
         cin.ignore();
     }
 
@@ -578,28 +553,25 @@ public:
     }
 };
 
-
-
-class ConsoleLogic{
+class ConsoleInterface{
 private:
-    Shopping shop;
-    bool isRunning;
+    ShoppingSystem shop;
 
 public:
-    ConsoleLogic(string& filePath, int lowInStock) : shop(filePath, move(lowInStock)), isRunning(true) {};
+    ConsoleInterface(string& filePath, int lowInStock) : shop(filePath, move(lowInStock)) {};
 
-    void run() {
+    void running() {
         string command;
-        while (isRunning) {
-            cout << "\nAll commands:\n"
-                 << " -show all;\n"
-                 << " -show 'category attribute';\n"
-                 << " -add a product;\n"
-                 << " -check the cart;\n"
-                 << " -checkout;\n"
-                 << " -view order history;\n"
-                 << " -need restocking;\n"
-                 << " -exit;\n"
+        while (true) {
+            cout
+                 << " 1)show all\n"
+                 << " 2)show 'category attribute'\n"
+                 << " 3)add a product\n"
+                 << " 4)check the cart\n"
+                 << " 5)checkout\n"
+                 << " 6)view order history\n"
+                 << " 7)need restocking\n"
+                 << " 8)exit\n"
                  << "Enter command: " << endl;
             getline(cin, command);
 
@@ -619,7 +591,7 @@ public:
             } else if (command == "need restocking") {
                 shop.needRestocking();
             } else if (command == "exit") {
-                isRunning = false;
+                break;
             } else {
                 cout << "Invalid command." << endl;
             }
@@ -628,9 +600,9 @@ public:
 };
 
 int main() {
-    string path = "/home/nastia/CLionProjects/OOPD_second/file.txt";
-    ConsoleLogic console(path, 6);
-    console.run();
+    string FilePath = "/home/nastia/CLionProjects/OOPD_second/file.txt";
+    ConsoleInterface consoleInterface(FilePath, 4);
+    consoleInterface.running();
 
     return 0;
 }
